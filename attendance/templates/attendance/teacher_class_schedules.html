@@ -1,0 +1,11 @@
+<h1>Your Class Schedules</h1>
+<ul>
+  {% for schedule in schedules %}
+    <li>
+      {{ schedule.subject.name }} - {{ schedule.day_of_week }} {{ schedule.start_time }} to {{ schedule.end_time }}
+      - Room {{ schedule.room_number }}
+    </li>
+  {% empty %}
+    <li>No classes assigned</li>
+  {% endfor %}
+</ul>
