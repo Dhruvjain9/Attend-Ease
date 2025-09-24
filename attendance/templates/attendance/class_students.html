@@ -1,0 +1,8 @@
+<h1>Students in {{ class_schedule.subject.name }} - {{ class_schedule.day_of_week }}</h1>
+<ul>
+  {% for student in students %}
+    <li>{{ student.user.first_name }} {{ student.user.last_name }}</li>
+  {% empty %}
+    <li>No students enrolled</li>
+  {% endfor %}
+</ul>

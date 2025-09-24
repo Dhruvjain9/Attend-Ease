@@ -1,0 +1,15 @@
+<h1>Teacher Dashboard</h1>
+<h2>Your Class Schedules</h2>
+<ul>
+  {% for cs in class_schedules %}
+    <li>
+      {{ cs.subject.name }} - {{ cs.day_of_week }} {{ cs.start_time }} to {{ cs.end_time }} - Room {{ cs.room_number }}
+      - <a href="{% url 'attendance:teacher_class_schedules' %}">View Your Class Schedules</a>
+      - <a href="{% url 'attendance:mark_attendance' cs.id %}">Mark Attendance</a>
+      - <a href="{% url 'attendance:qr_code_view' cs.id %}">Show QR Code</a>
+
+    </li>
+  {% empty %}
+    <li>No classes assigned</li>
+  {% endfor %}
+</ul>
