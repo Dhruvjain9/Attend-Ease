@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Attendance</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 220px;
+      right: 0;
+      height: 60px;
+      background: #2c3e50;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .header-logo {
+      height: 40px;
+    }
+    .header-signout {
+      margin-left: auto;
+      height: 28px;
+      width: 28px;
+      cursor: pointer;
+      filter: invert(100%);
+      transition: transform 0.2s;
+    }
+    .header-signout:hover {
+      transform: scale(1.1);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background: #2c3e50;
+      color: #fff;
+      height: 100vh;
+      padding: 100px 20px 20px 20px; /* push below header */
+      box-sizing: border-box;
+      position: fixed;
+    }
+    .sidebar img {
+      width: 80px;
+      border-radius: 50%;
+      display: block;
+      margin: 0 auto 10px;
+    }
+    .sidebar h3 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .sidebar a {
+      display: block;
+      color: #fff;
+      padding: 10px;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .sidebar a.active, .sidebar a:hover {
+      background: #1abc9c;
+    }
+
+    /* Main content */
+    .main-content {
+      flex: 1;
+      margin-left: 220px;
+      padding: 100px 20px 20px 20px; /* push below header */
+      overflow-y: auto;
+    }
+    h2 {
+      margin-top: 0;
+    }
+
+    /* Tabs */
+    .tabs {
+      margin-bottom: 20px;
+    }
+    .tab-link {
+      padding: 10px 20px;
+      cursor: pointer;
+      background: #ecf0f1;
+      border: none;
+      margin-right: 5px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    .tab-link.active {
+      background: #1abc9c;
+      color: #fff;
+    }
+    .tab-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* DataTable */
+    table {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .progress-bar {
+      height: 10px;
+      border-radius: 5px;
+      background: #eee;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      display: block;
+    }
+    .below65 {
+      background: #e74c3c; /* red */
+    }
+    .above65 {
+      background: #1abc9c; /* green */
+    }
+
+    /* Chart container */
+    .chart-container {
+      margin-top: 30px;
+      text-align: center;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 250px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #semesterChart {
+      width: 200px !important;
+      height: 200px !important;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="header">
+    <img src="Logo4.png" alt="Logo" class="header-logo">
+    <img src="https://cdn-icons-png.flaticon.com/512/1828/1828479.png" alt="Sign Out" class="header-signout" onclick="signOut()">
+  </header>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile">
+    <h3 id="studentName">Student</h3>
+    <a href="student-dashboard.html">Dashboard</a>
+    <a href="attendance.html" class="active">My Attendance</a>
+    <a href="#">Smart Curriculum</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <h2>My Attendance</h2>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-link active" data-tab="subjectWise">Subject-wise</button>
+      <button class="tab-link" data-tab="today">Today's</button>
+      <button class="tab-link" data-tab="yesterday">Yesterday's</button>
+    </div>
+
+    <!-- Subject-wise -->
+    <div id="subjectWise" class="tab-content">
+      <table id="attendanceTable" class="display" style="width:100%">
+        <thead>
+          <tr>
+            <th>Course Code</th>
+            <th>Course Name</th>
+            <th>Percentage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Filled dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Today's -->
+    <div id="today" class="tab-content" style="display:none;">
+      <table id="todayTable" class="display" style="width:100%">
+        <thead>
+          <tr>
+            <th>Course Code</th>
+            <th>Course Name</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Filled dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Yesterday -->
+    <div id="yesterday" class="tab-content" style="display:none;">
+      <table id="yesterdayTable" class="display" style="width:100%">
+        <thead>
+          <tr>
+            <th>Course Code</th>
+            <th>Course Name</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Filled dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Semester Chart -->
+    <div class="chart-container">
+      <h3>Semester wise percentage</h3>
+      <canvas id="semesterChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    function signOut() {
+      window.location.href = "login.html";
+    }
+
+    async function fetchAttendance() {
+      try {
+        const res = await fetch("/api/attendance"); // your backend API
+        const data = await res.json();
+
+        // Subject-wise
+        let tbody = $("#attendanceTable tbody");
+        tbody.empty();
+        data.subjectWise.forEach(row => {
+          let barClass = row.percentage >= 65 ? "above65" : "below65";
+          tbody.append(`
+            <tr>
+              <td>${row.courseCode}</td>
+              <td>${row.courseName}</td>
+              <td>
+                ${row.percentage}% 
+                <div class="progress-bar">
+                  <span class="progress-fill ${barClass}" style="width:${row.percentage}%"></span>
+                </div>
+              </td>
+            </tr>
+          `);
+        });
+
+        // Today
+        let todayBody = $("#todayTable tbody");
+        todayBody.empty();
+        data.today.forEach(row => {
+          todayBody.append(`<tr><td>${row.courseCode}</td><td>${row.courseName}</td><td>${row.status}</td></tr>`);
+        });
+
+        // Yesterday
+        let yBody = $("#yesterdayTable tbody");
+        yBody.empty();
+        data.yesterday.forEach(row => {
+          yBody.append(`<tr><td>${row.courseCode}</td><td>${row.courseName}</td><td>${row.status}</td></tr>`);
+        });
+
+        // Chart
+        const ctx = document.getElementById("semesterChart").getContext("2d");
+        new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            datasets: [{
+              data: [data.semesterPercentage, 100 - data.semesterPercentage],
+              backgroundColor: ["#1abc9c", "#ecf0f1"],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            cutout: "75%",
+            plugins: { legend: { display: false }, tooltip: { enabled: false } }
+          }
+        });
+      } catch (err) {
+        console.error("Error loading attendance:", err);
+      }
+    }
+
+    $(document).ready(function() {
+      // Tabs
+      $(".tab-link").click(function() {
+        $(".tab-link").removeClass("active");
+        $(this).addClass("active");
+        $(".tab-content").hide();
+        $("#" + $(this).data("tab")).show();
+      });
+
+      // Init DataTables
+      $('#attendanceTable').DataTable();
+      $('#todayTable').DataTable();
+      $('#yesterdayTable').DataTable();
+
+      // Load data
+      fetchAttendance();
+    });
+  </script>
+</body>
+</html>

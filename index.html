@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AttendEase - Smart Attendance & Curriculum App</title>
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #e63946; /* Red theme */
+      --text: #222;
+      --bg: #fff;
+      --muted: #666;
+      --card-bg: #fff;
+      --border: #f0f0f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      padding: 3rem 2rem;
+      text-align: center;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      color: #fcecec;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--card-bg);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      transition: color 0.2s, border-bottom 0.2s;
+    }
+
+    nav button.active {
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    section {
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    section.active { display: block; }
+
+    h2 {
+      margin-bottom: 1rem;
+      font-size: 1.8rem;
+      color: var(--primary);
+      text-align: center;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .feature {
+      background: var(--card-bg);
+      padding: 2rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border: 1px solid var(--border);
+      text-align: center;
+      transition: transform 0.2s ease;
+    }
+
+    .feature:hover { transform: translateY(-5px); }
+
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+
+    /* QR preview */
+    .qr-box {
+      margin: 1.5rem auto 0;
+      width: 200px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .qr-box::after {
+      content: "Refreshing...";
+      position: absolute;
+      bottom: -25px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AttendEase</h1>
+    <p>Smart QR-Based Attendance & Curriculum Management</p>
+  </header>
+
+  <nav>
+    <button class="tab-btn active" data-tab="features">Features</button>
+    <button class="tab-btn" data-tab="about">About</button>
+    <button class="tab-btn" data-tab="contact">Contact</button>
+  </nav>
+
+  <div class="container">
+    <section id="features" class="active">
+      <h2>Core Features</h2>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">📱</div>
+          <h3>QR Attendance</h3>
+          <p>
+            Every lecture generates a <b>unique QR code</b> that refreshes <b>every 20 seconds</b>.  
+            Students scan it to mark attendance — no proxies, no roll calls.
+          </p>
+          <div class="qr-box" id="qrBox">
+            <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=init" alt="QR Code">
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-icon">📚</div>
+          <h3>Curriculum Hub</h3>
+          <p>
+            Teachers manage <b>syllabus, schedules, assignments</b> in one dashboard.  
+            Students get structured access without clutter.
+          </p>
+        </div>
+
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <h3>Reports & Insights</h3>
+          <p>
+            Auto-generate <b>attendance reports</b> for each class.  
+            Institutions can analyze trends and export PDF summaries instantly.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="about">
+      <h2>About AttendEase</h2>
+      <p style="text-align:center; max-width:700px; margin:auto;">
+        AttendEase is a streamlined attendance + curriculum platform built for modern campuses.  
+        Our focus is simplicity: <b>QR attendance every 20s</b>, one-click course management, and instant reporting.  
+        Fast, secure, and reliable for students and faculty.
+      </p>
+    </section>
+
+    <section id="contact">
+      <h2>Contact Us</h2>
+      <p style="text-align:center;">
+        Want a demo or partnership?  
+        Email us at <a href="mailto:info@attendease.com">info@attendease.com</a>  
+        or call us at <b>+91-98765-43210</b>.
+      </p>
+    </section>
+  </div>
+
+  <footer>
+    &copy; 2025 AttendEase. All rights reserved.
+  </footer>
+
+  <script>
+    const buttons = document.querySelectorAll(".tab-btn");
+    const sections = document.querySelectorAll("section");
+
+    buttons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        buttons.forEach(b => b.classList.remove("active"));
+        sections.forEach(s => s.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
+
+    // QR Code refresher (dummy API)
+    function refreshQR() {
+      const qr = document.getElementById("qrImage");
+      const timestamp = Date.now();
+      qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=AttendEase_${timestamp}`;
+    }
+
+    setInterval(refreshQR, 20000); // refresh every 20s
+    refreshQR();
+  </script>
+</body>
+</html>
