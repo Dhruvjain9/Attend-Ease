@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, {{ student.user.first_name }}</h1>
+
+    <h2>Attendance</h2>
+    <p>You have attended {{ attendance_present }} out of {{ attendance_total }} classes.</p>
+    <p>Attendance Percentage: {{ attendance_percentage }}%</p>
+
+    <h2>Interests</h2>
+    <p>{{ student.interests }}</p>
+    <a href="{% url 'edit_interests' %}">Edit Interests</a>
+
+    <h2>Your Class Schedule</h2>
+    <ul>
+        {% for schedule in class_schedules %}
+            <li>{{ schedule.subject }} on {{ schedule.day_of_week }}, {{ schedule.room_name }}</li>
+        {% empty %}
+            <li>You are not enrolled in any classes.</li>
+        {% endfor %}
+    </ul>
+
+    <p><a href="{% url 'logout' %}">Logout</a></p>
+</body>
+</html>
