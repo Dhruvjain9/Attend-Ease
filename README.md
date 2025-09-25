@@ -1,7 +1,3 @@
-Got you sir 🚀 — let’s make a clean, professional **README.md** for your **Smart Attendance & Smart Curriculum System**. Here’s a polished draft you can use directly in your repo:
-
----
-
 # 📚 Smart Attendance & Smart Curriculum System
 
 A modern solution designed to **automate attendance tracking** and **streamline curriculum planning** for educational institutions. This project leverages **face recognition, AI-powered insights, and digital curriculum management** to improve efficiency for both faculty and students.
