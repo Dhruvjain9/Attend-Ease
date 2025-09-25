@@ -86,4 +86,3 @@ This project is licensed under the **MIT License** – feel free to use and impr
 
 ---
 
-Do you want me to make this **GitHub-friendly** (with badges, screenshots, and demo GIF placeholders) so it looks 🔥 professional, or keep it simple and minimal?
