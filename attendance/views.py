@@ -16,26 +16,13 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import Teacher, ClassSchedule
-
+from django import messages
 
 def teacher_required(user):
     return user.is_authenticated and hasattr(user, 'teacher')
 
 @login_required
-def view_interests(request):
-    print(f"Logged-in user: {request.user}")
-    print(f"Is Authenticated: {request.user.is_authenticated}")
-    try:
-        student = request.user.student
-        print(f"Found student: {student}")
-    except Exception:
-        print("No student linked to this user.")
-        return render(request, 'attendance/no_student_profile.html')
-    return render(request, 'attendance/view_interests.html', {'student': student})
-
-
-@login_required
-def edit_interests(request):
+def interests(request):
     try:
         student = Student.objects.get(user=request.user)
     except Student.DoesNotExist:
@@ -45,11 +32,15 @@ def edit_interests(request):
         form = StudentInterestsForm(request.POST, instance=student)
         if form.is_valid():
             form.save()
-            return redirect('view_interests')
+            messages.success(request, "Your interests were updated successfully!")
+            return redirect('attendance:interests')
     else:
         form = StudentInterestsForm(instance=student)
 
-    return render(request, 'attendance/edit_interests.html', {'form': form})
+    return render(request, 'attendance/interests.html', {
+        'student': student,
+        'form': form,
+    })
 
 @login_required
 def attendance_percentage(request):
