@@ -1,28 +1,164 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Student Dashboard</title>
+  <title>Student Dashboard</title>
+  <style>
+    .header {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 60px; background: #2c3e50;
+      display: flex; align-items: center; padding: 0 20px;
+      z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .header-logo { height: 50px; }
+    .header-signout { margin-left: auto; height: 28px; width: 28px; cursor: pointer; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f4f6f9; display: flex; }
+    .sidebar {
+      position: fixed; top: 60px; left: 0; width: 220px;
+      height: calc(100vh - 60px); background: #2c3e50; color: #fff;
+      padding: 20px; box-sizing: border-box; overflow-y: auto;
+    }
+    .sidebar img { width: 80px; border-radius: 50%; display: block; margin: 0 auto 10px; }
+    .sidebar h3 { text-align: center; margin-bottom: 20px; }
+    .sidebar a {
+      display: block; color: #fff; padding: 10px;
+      text-decoration: none; border-radius: 6px; margin-bottom: 10px;
+    }
+    .sidebar a.active, .sidebar a:hover { background: #1abc9c; }
+    .main-content { margin-left: 220px; padding: 85px 25px 25px 25px; }
+    h2 { margin-top: 0; }
+
+    /* Timetable */
+    table {
+      width: 100%; border-collapse: collapse; background: #fff;
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 30px;
+    }
+    th, td { border: 1px solid #ddd; text-align: center; padding: 12px; min-width: 120px; }
+    th { background: #2c3e50; color: #fff; }
+    .subject { font-weight: bold; display: block; font-size: 14px; }
+    .faculty { font-size: 12px; color: #555; }
+    .break { background: #f8d7da; font-weight: bold; }
+    .lunch { background: #d4edda; font-weight: bold; }
+
+    /* Grid below timetable */
+    .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .attendance-card {
+      background: #fff; padding: 20px; border-radius: 12px;
+      text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .attendance-card h2 { font-size: 48px; margin: 0; color: #4CAF50; }
+    .attendance-card p { margin: 8px 0 0; font-weight: bold; }
+    .today-classes {
+      background: #fff; padding: 15px; border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .today-classes h3 { margin-top: 0; margin-bottom: 15px; }
+    .class-item {
+      background: #f9f9f9; padding: 12px; border-radius: 8px;
+      margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .class-item strong { font-size: 15px; }
+    .class-item span { color: #555; font-size: 14px; }
+  </style>
+  <script>
+    function signOut() { window.location.href = 'login.html'; }
+
+    // Fetch student dashboard data
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const res = await fetch("/api/student_dashboard");
+        const data = await res.json();
+
+        // Sidebar profile
+        document.getElementById("studentName").innerText = data.name;
+        document.getElementById("profilePic").src = data.profile_pic || "default.png";
+        document.getElementById("welcomeName").innerText = data.name;
+
+        // Attendance
+        document.getElementById("attendancePercent").innerText = data.attendance + "%";
+
+        // Timetable
+        const tbody = document.getElementById("timetable-body");
+        tbody.innerHTML = "";
+        data.timetable.forEach(row => {
+          let tr = "<tr><td>" + row.day + "</td>";
+          row.slots.forEach(slot => {
+            if(slot.type === "break") tr += `<td class="break">Break</td>`;
+            else if(slot.type === "lunch") tr += `<td class="lunch">Lunch</td>`;
+            else tr += `<td><span class="subject">${slot.subject}</span><span class="faculty">${slot.faculty}</span></td>`;
+          });
+          tr += "</tr>";
+          tbody.innerHTML += tr;
+        });
+
+        // Today’s classes
+        const todayList = document.getElementById("todayClasses");
+        todayList.innerHTML = "";
+        data.today_classes.forEach(cls => {
+          todayList.innerHTML += `
+            <div class="class-item">
+              <div><strong>${cls.subject}</strong><br><span>${cls.time}</span></div>
+              <span>${cls.faculty}</span>
+            </div>`;
+        });
+
+      } catch (e) {
+        console.error("Error loading dashboard:", e);
+      }
+    });
+  </script>
 </head>
+<header class="header">
+  <img src="Logo4.png" alt="Logo" class="header-logo">
+  <img src="https://cdn-icons-png.flaticon.com/512/1828/1828479.png" alt="Sign Out" class="header-signout" onclick="signOut()">
+</header>
 <body>
-    <h1>Welcome, {{ student.user.first_name }}</h1>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <img id="profilePic" src="default.png" alt="Profile">
+    <h3 id="studentName">Loading...</h3>
+    <a href="student-dashboard.html" class="active">Dashboard</a>
+    <a href="attendance.html">My Attendance</a>
+    <a href="interests.html">Smart Curriculum</a>
+  </div>
 
-    <h2>Attendance</h2>
-    <p>You have attended {{ attendance_present }} out of {{ attendance_total }} classes.</p>
-    <p>Attendance Percentage: {{ attendance_percentage }}%</p>
+  <!-- Main content -->
+  <div class="main-content">
+    <h2>Welcome, <span id="welcomeName">Student</span></h2>
 
-    <h2>Interests</h2>
-    <p>{{ student.interests }}</p>
-    <a href="{% url 'edit_interests' %}">Edit Interests</a>
+    <!-- Timetable -->
+    <h3>Your Weekly Timetable</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>08:00 - 09:00</th>
+          <th>09:00 - 10:00</th>
+          <th>10:00 - 11:00</th>
+          <th>11:00 - 12:00</th>
+          <th>12:00 - 01:00</th>
+          <th>01:00 - 02:00</th>
+          <th>02:00 - 03:00</th>
+          <th>03:00 - 04:00</th>
+        </tr>
+      </thead>
+      <tbody id="timetable-body">
+        <!-- Filled by backend -->
+      </tbody>
+    </table>
 
-    <h2>Your Class Schedule</h2>
-    <ul>
-        {% for schedule in class_schedules %}
-            <li>{{ schedule.subject }} on {{ schedule.day_of_week }}, {{ schedule.room_name }}</li>
-        {% empty %}
-            <li>You are not enrolled in any classes.</li>
-        {% endfor %}
-    </ul>
+    <!-- Attendance & Today’s Classes -->
+    <div class="dashboard-grid">
+      <div class="attendance-card">
+        <h2 id="attendancePercent">0%</h2>
+        <p>Total Attendance</p>
+      </div>
 
-    <p><a href="{% url 'logout' %}">Logout</a></p>
+      <div class="today-classes">
+        <h3>Today’s Classes</h3>
+        <div id="todayClasses"><!-- Filled by backend --></div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

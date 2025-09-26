@@ -1,36 +1,32 @@
-#attendance - views.py
-
 import datetime
+import json
+import qrcode
+from io import BytesIO
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.forms import modelformset_factory
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponseForbidden
-from .models import Attendance, ClassSchedule, Student
-from .forms import AttendanceForm, StudentInterestsForm
-import qrcode
-from io import BytesIO
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from .models import QRCodeSession, ClassSchedule
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import json
-from .models import Teacher, ClassSchedule
+
+from .models import Attendance, ClassSchedule, Student, QRCodeSession, Teacher
+from .forms import AttendanceForm, StudentInterestsForm
 
 
+# 🔐 Helpers
 def teacher_required(user):
     return user.is_authenticated and hasattr(user, 'teacher')
 
+
+# 👨‍🎓 Student Views
 @login_required
 def view_interests(request):
-    print(f"Logged-in user: {request.user}")
-    print(f"Is Authenticated: {request.user.is_authenticated}")
     try:
         student = request.user.student
-        print(f"Found student: {student}")
-    except Exception:
-        print("No student linked to this user.")
+    except Student.DoesNotExist:
         return render(request, 'attendance/no_student_profile.html')
+
     return render(request, 'attendance/view_interests.html', {'student': student})
 
 
@@ -45,11 +41,12 @@ def edit_interests(request):
         form = StudentInterestsForm(request.POST, instance=student)
         if form.is_valid():
             form.save()
-            return redirect('view_interests')
+            return redirect('attendance:view_interests')
     else:
         form = StudentInterestsForm(instance=student)
 
     return render(request, 'attendance/edit_interests.html', {'form': form})
+
 
 @login_required
 def attendance_percentage(request):
@@ -69,6 +66,38 @@ def attendance_percentage(request):
         'total_classes': total_classes,
     })
 
+
+@login_required
+def student_dashboard(request):
+    try:
+        student = request.user.student
+    except Student.DoesNotExist:
+        return render(request, 'attendance/no_student_profile.html')
+
+    # Attendance summary
+    total = Attendance.objects.filter(student=student).count()
+    present = Attendance.objects.filter(student=student, status='Present').count()
+    attendance_percentage = (present / total) * 100 if total > 0 else 0
+
+    # Interests
+    interests = student.interests
+
+    # Class schedules - assuming student has a many-to-many relation
+    class_schedules = ClassSchedule.objects.filter(students=student)
+
+    context = {
+        "student": student,
+        "attendance_percentage": round(attendance_percentage, 2),
+        "attendance_present": present,
+        "attendance_total": total,
+        "interests": interests,
+        "class_schedules": class_schedules,
+    }
+
+    return render(request, 'attendance/student_dashboard.html', context)
+
+
+# 👨‍🏫 Teacher Views
 @login_required
 @user_passes_test(teacher_required)
 def mark_attendance(request, classschedule_id):
@@ -78,6 +107,7 @@ def mark_attendance(request, classschedule_id):
     students = classschedule.students.all()
     AttendanceFormSet = modelformset_factory(Attendance, form=AttendanceForm, extra=0)
 
+    # Pre-populate with "Absent" unless already marked
     for student in students:
         Attendance.objects.get_or_create(
             student=student,
@@ -96,7 +126,7 @@ def mark_attendance(request, classschedule_id):
         formset = AttendanceFormSet(request.POST, queryset=attendance_qs)
         if formset.is_valid():
             formset.save()
-            return redirect('teacher_class_schedules')
+            return redirect('attendance:teacher_class_schedules')
     else:
         formset = AttendanceFormSet(queryset=attendance_qs)
 
@@ -105,6 +135,7 @@ def mark_attendance(request, classschedule_id):
         'classschedule': classschedule,
         'attendance_date': attendance_date,
     })
+
 
 @login_required
 @user_passes_test(teacher_required)
@@ -115,87 +146,74 @@ def teacher_class_schedules(request):
 
 
 @login_required
-def student_dashboard(request):
-    user = request.user
-    try:
-        student = user.student
-    except Student.DoesNotExist:
-        return render(request, 'attendance/no_student_profile.html')
-
-    # Attendance summary
-    total = Attendance.objects.filter(student=student).count()
-    present = Attendance.objects.filter(student=student, status='Present').count()
-    attendance_percentage = (present / total) * 100 if total > 0 else 0
-
-    # Interests
-    interests = student.interests
-
-    # Class schedules - assuming student has a many-to-many relation with ClassSchedule
-    class_schedules = ClassSchedule.objects.filter(students=student)
-
+@user_passes_test(teacher_required)
+def teacher_dashboard(request):
+    teacher = request.user.teacher
+    class_schedules = teacher.class_schedules.all()
     context = {
-        "student": student,
-        "attendance_percentage": round(attendance_percentage, 2),
-        "attendance_present": present,
-        "attendance_total": total,
-        "interests": interests,
-        "class_schedules": class_schedules,
+        'class_schedules': class_schedules
     }
+    return render(request, 'attendance/teacher_dashboard.html', context)
 
-    return render(request, 'attendance/student_dashboard.html', context)
+
+@login_required
+@user_passes_test(teacher_required)
+def class_students(request, schedule_id):
+    class_schedule = get_object_or_404(ClassSchedule, id=schedule_id)
+    students = class_schedule.students.all()
+    context = {
+        'class_schedule': class_schedule,
+        'students': students
+    }
+    return render(request, 'attendance/class_students.html', context)
 
 
+# 🧪 Test View
 def test_view(request):
     return render(request, "attendance/test.html")
 
+
+# 📷 QR Code System
+@login_required
+@user_passes_test(teacher_required)
 def generate_qr_code(request, classschedule_id):
     try:
-        # Get the class schedule object or return 404
         class_schedule = ClassSchedule.objects.get(id=classschedule_id)
     except ClassSchedule.DoesNotExist:
         return HttpResponse("Class schedule not found", status=404)
 
-    # Get current aware datetime with timezone
     now = timezone.now()
     today = now.date()
 
-    # Combine date with start and end time as naive datetime
+    # Class start and end
     start_datetime_naive = datetime.datetime.combine(today, class_schedule.start_time)
     end_datetime_naive = datetime.datetime.combine(today, class_schedule.end_time)
-
-    # Convert naive datetimes to aware datetimes using current timezone
     start_datetime = timezone.make_aware(start_datetime_naive, timezone.get_current_timezone())
     end_datetime = timezone.make_aware(end_datetime_naive, timezone.get_current_timezone())
 
-    # Check if current time is within class schedule window
     if not (start_datetime <= now <= end_datetime):
         return HttpResponse("QR code not active now", status=403)
 
-    # Check if an active QRCodeSession exists in the last 20 seconds
     twenty_seconds_ago = now - timezone.timedelta(seconds=20)
     qr_session = QRCodeSession.objects.filter(
         class_schedule=class_schedule,
         created_at__gte=twenty_seconds_ago
     ).first()
 
-    # Create new QRCodeSession if none exists, provide start_time to avoid integrity error
     if not qr_session:
         qr_session = QRCodeSession.objects.create(
             class_schedule=class_schedule,
             start_time=timezone.now()
         )
 
-    # Prepare QR code data with session ID
     data = f"qr_session_id:{qr_session.id}"
-
-    # Generate and save QR code image to buffer
     qr_img = qrcode.make(data)
     buffer = BytesIO()
     qr_img.save(buffer)
     buffer.seek(0)
 
-    # Return QR code image with MIME type image/png
     return HttpResponse(buffer, content_type="image/png")
+
 
 @csrf_exempt
 def validate_qr_scan(request):
@@ -230,7 +248,7 @@ def validate_qr_scan(request):
         return JsonResponse({"error": "Student not enrolled in this class"}, status=403)
 
     today = timezone.localdate()
-    teacher = class_schedule.teacher  # Get teacher from class schedule
+    teacher = class_schedule.teacher
 
     attendance_record, created = Attendance.objects.get_or_create(
         student=student,
@@ -240,26 +258,8 @@ def validate_qr_scan(request):
     )
 
     if not created:
-        return JsonResponse({"message": "Attendance already marked"}, status=200)
+        attendance_record.status = "Present"
+        attendance_record.save()
+        return JsonResponse({"message": "Attendance updated"}, status=200)
 
     return JsonResponse({"message": "Attendance marked successfully"}, status=200)
-
-def teacher_dashboard(request):
-    # Get logged-in teacher's user
-    teacher = Teacher.objects.get(user=request.user)
-    # Get their class schedules
-    class_schedules = ClassSchedule.objects.filter(teacher=teacher)
-    context = {
-        'class_schedules': class_schedules
-    }
-    return render(request, 'attendance/teacher_dashboard.html', context)
-
-def class_students(request, schedule_id):
-    class_schedule = get_object_or_404(ClassSchedule, id=schedule_id)
-    students = class_schedule.students.all()
-    context = {
-        'class_schedule': class_schedule,
-        'students': students
-    }
-    return render(request, 'attendance/class_students.html', context)
-
