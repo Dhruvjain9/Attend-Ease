@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin:0; padding:0; font-family: 'Inter', sans-serif; }
+    body { background: #f5f7fa; }
+    header {
+      background: #2575fc;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    header h1 { font-size: 22px; }
+    header nav a {
+      color: white;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    header nav a:hover { text-decoration: underline; }
+
+    .container {
+      padding: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
+    }
+    .card:hover { transform: translateY(-5px); }
+    .card h2 { margin-bottom: 10px; color: #333; }
+    .card p { color: #666; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    table th, table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    table th {
+      background: #2575fc;
+      color: white;
+    }
+    table tr:hover { background: #f0f0f0; }
+
+    .logout-btn {
+      background: #6a11cb;
+      border: none;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .logout-btn:hover { background: #2575fc; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Student Dashboard</h1>
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">Attendance</a>
+    <a href="#">Profile</a>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </nav>
+</header>
+
+<div class="container">
+  <div class="card">
+    <h2>Classes Attended</h2>
+    <p>22 / 25</p>
+  </div>
+  <div class="card">
+    <h2>Attendance %</h2>
+    <p>88%</p>
+  </div>
+  <div class="card">
+    <h2>Next Class</h2>
+    <p>Math - 10:00 AM</p>
+  </div>
+</div>
+
+<div class="container">
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Subject</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>2025-09-25</td>
+        <td>Math</td>
+        <td>Present</td>
+      </tr>
+      <tr>
+        <td>2025-09-26</td>
+        <td>Physics</td>
+        <td>Absent</td>
+      </tr>
+      <tr>
+        <td>2025-09-27</td>
+        <td>Chemistry</td>
+        <td>Present</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+  function logout() { window.location.href = 'index.html'; }
+</script>
+
+</body>
+</html>
