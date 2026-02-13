@@ -1,0 +1,125 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interests — Attendance</title>
+  <style>
+    :root{--accent:#1f7a8c;--muted:#666}
+    body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin:0;padding:24px;background:#f7fafc;color:#222}
+    .card{background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(16,24,40,0.06);padding:20px;max-width:820px;margin:20px auto}
+    .row{display:flex;gap:20px;align-items:flex-start}
+    .col{flex:1}
+    h1{margin:0 0 10px;font-size:20px}
+    p.muted{color:var(--muted);margin:6px 0}
+    .btn{display:inline-block;padding:8px 12px;border-radius:8px;border:0;background:var(--accent);color:#fff;text-decoration:none;cursor:pointer}
+    .btn.secondary{background:#e6eef0;color:#0b2130}
+    label{display:block;margin-top:10px;font-weight:600}
+    textarea,input[type=text]{width:100%;padding:10px;border-radius:8px;border:1px solid #e2e8f0;margin-top:6px}
+    .actions{margin-top:12px}
+    .small{font-size:13px;color:#556}
+    .alert{padding:10px;border-radius:8px;background:#e6fffa;color:#054; margin-bottom:12px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <h1>My Interests</h1>
+        <p class="muted">View and edit your interests here. Changes will be saved to your profile.</p>
+      </div>
+      <div>
+        <button id="editToggle" class="btn">Edit</button>
+      </div>
+    </div>
+
+    {% if messages %}
+      <div style="margin-top:12px">
+        {% for message in messages %}
+          <div class="alert">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="row" style="margin-top:16px">
+      <div class="col">
+        <!-- VIEW MODE -->
+        <div id="viewPane">
+          <h3 style="margin-bottom:6px">Profile</h3>
+          <p class="small">Name: <strong>{{ student.user.get_full_name|default:student.user.username }}</strong></p>
+          <p class="small">Roll / ID: <strong>{{ student.roll_number|default:'—' }}</strong></p>
+
+          <hr style="margin:12px 0">
+
+          <h3 style="margin-bottom:6px">Interests</h3>
+          {% if student.interests %}
+            <p id="interestsText">{{ student.interests|linebreaksbr }}</p>
+          {% else %}
+            <p id="interestsText" class="muted">You haven't added any interests yet.</p>
+          {% endif %}
+
+          <div class="actions">
+            <a href="{% url 'attendance:student_dashboard' %}" class="btn secondary">Back to Dashboard</a>
+            <button id="editBtnInline" class="btn" style="margin-left:8px">Edit Interests</button>
+          </div>
+        </div>
+
+        <!-- EDIT MODE -->
+        <div id="editPane" style="display:none">
+          <h3>Edit Interests</h3>
+
+          <form method="post" action="{% url 'attendance:edit_interests' %}">
+            {% csrf_token %}
+            {# If your view supplies a Django form instance named 'form', render it; otherwise render a textarea field #}
+            {% if form %}
+              {{ form.non_field_errors }}
+              {% for field in form.visible_fields %}
+                <label for="id_{{ field.name }}">{{ field.label }}</label>
+                {{ field.errors }}
+                {{ field }}
+              {% endfor %}
+            {% else %}
+              <label for="id_interests">Your interests (comma or newline separated)</label>
+              <textarea id="id_interests" name="interests" rows="6">{{ student.interests }}</textarea>
+            {% endif %}
+
+            <div class="actions">
+              <button type="submit" class="btn">Save</button>
+              <button type="button" id="cancelEdit" class="btn secondary">Cancel</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+
+      <div class="col" style="max-width:300px">
+        <div style="background:#fbfdfe;border-radius:10px;padding:12px">
+          <h4 style="margin:0 0 8px">Tips</h4>
+          <p class="small">Use commas or new lines to separate interests. Keep them short — eg. "AI, Basketball, Web Dev".</p>
+          <p class="small">Teachers can view these to suggest projects. Keep it updated.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const editToggle = document.getElementById('editToggle');
+      const viewPane = document.getElementById('viewPane');
+      const editPane = document.getElementById('editPane');
+      const editBtnInline = document.getElementById('editBtnInline');
+      const cancelEdit = document.getElementById('cancelEdit');
+
+      function showEdit(){ viewPane.style.display='none'; editPane.style.display='block'; }
+      function showView(){ editPane.style.display='none'; viewPane.style.display='block'; }
+
+      editToggle.addEventListener('click', function(){
+        if(editPane.style.display === 'none') showEdit(); else showView();
+      });
+      editBtnInline.addEventListener('click', showEdit);
+      cancelEdit.addEventListener('click', showView);
+    })();
+  </script>
+</body>
+</html>

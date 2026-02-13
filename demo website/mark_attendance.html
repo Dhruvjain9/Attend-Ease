@@ -347,11 +347,11 @@
 
     function showTab(tabName) {
       if (tabName === 'dashboard') {
-        window.location.href = "teacher-dashboard.html";
+        window.location.href = "teacher_dashboard.html";
       } else if (tabName === 'attendance') {
-        window.location.href = "post-attendance.html";
+        window.location.href = "mark_attendance.html";
       } else if (tabName === 'planning') {
-        document.title = "CU Teacher Dashboard - Lesson Planning";
+        window.location.href = "interests.html";
       }
       let tabs = document.querySelectorAll('.tab');
       tabs.forEach(tab => tab.style.display = 'none');

@@ -1,15 +1,232 @@
-<h1>Teacher Dashboard</h1>
-<h2>Your Class Schedules</h2>
-<ul>
-  {% for cs in class_schedules %}
-    <li>
-      {{ cs.subject.name }} - {{ cs.day_of_week }} {{ cs.start_time }} to {{ cs.end_time }} - Room {{ cs.room_number }}
-      - <a href="{% url 'attendance:teacher_class_schedules' %}">View Your Class Schedules</a>
-      - <a href="{% url 'attendance:mark_attendance' cs.id %}">Mark Attendance</a>
-      - <a href="{% url 'attendance:qr_code_view' cs.id %}">Show QR Code</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CU Teacher Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+    }
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 60px;
+      width: 220px;
+      height: calc(100vh - 60px);
+      background: #2c3e50;
+      color: #fff;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+    .sidebar img {
+      width: 80px;
+      border-radius: 50%;
+      display: block;
+      margin: 0 auto 15px;
+    }
+    .sidebar h3 {
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+    .sidebar a {
+      display: block;
+      padding: 12px;
+      margin: 8px 0;
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    .sidebar a:hover, .sidebar a.active {
+      background: #1abc9c;
+      color: #fff;
+    }
+    .main-content {
+      margin-left: 220px;
+      padding: 85px 25px 25px 25px;
+      flex: 1;
+    }
+    h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 25px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    table th, table td {
+      padding: 12px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    table th {
+      background: #2c3e50;
+      color: #fff;
+    }
+    .today-classes, .attendance-card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .today-classes h3, .attendance-card h2 {
+      color: #1abc9c;
+      margin-top: 0;
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .tab {
+      display: none;
+    }
+    .tab.active {
+      display: block;
+    }
+    .progress-bar {
+      background: #eee;
+      border-radius: 6px;
+      overflow: hidden;
+      height: 12px;
+      margin-top: 5px;
+    }
+    .progress-fill {
+      height: 100%;
+      display: block;
+      border-radius: 6px;
+    }
+    .above65 { background: #1abc9c; }
+    .below65 { background: #e74c3c; }
 
-    </li>
-  {% empty %}
-    <li>No classes assigned</li>
-  {% endfor %}
-</ul>
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #2c3e50;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .header-logo {
+      height: 50px;
+    }
+    .header-signout {
+      margin-left: auto;
+      height: 28px;
+      width: 28px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <img src="{{ url_for('static', filename='Logo4.png') }}" alt="Logo" class="header-logo">
+    <img src="https://cdn-icons-png.flaticon.com/512/1828/1828479.png" 
+         alt="Sign Out" class="header-signout" onclick="signOut()">
+  </header>
+
+  <div class="sidebar">
+    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Profile">
+    <h3>{{ teacher_name }}</h3>
+    <a class="active" onclick="showTab('dashboard', event)">Dashboard</a>
+    <a onclick="showTab('attendance', event)">Post Attendance</a>
+    <a onclick="showTab('planning', event)">Lesson Planning</a>
+  </div>
+
+  <div class="main-content">
+    <!-- Dashboard -->
+    <div id="dashboard" class="tab active">
+      <h2>Weekly Timetable</h2>
+      <table>
+        <tr>
+          <th>Day</th>
+          <th>9:00 - 10:00</th>
+          <th>10:00 - 11:00</th>
+          <th>11:00 - 12:00</th>
+          <th>1:00 - 2:00</th>
+          <th>2:00 - 3:00</th>
+        </tr>
+        <tr>
+          <td>Monday</td>
+          <td>AI</td>
+          <td>ML</td>
+          <td>-</td>
+          <td>DBMS</td>
+          <td>-</td>
+        </tr>
+        <tr>
+          <td>Tuesday</td>
+          <td>-</td>
+          <td>OS</td>
+          <td>ML</td>
+          <td>-</td>
+          <td>AI</td>
+        </tr>
+      </table>
+
+      <div class="dashboard-grid">
+        <div class="attendance-card">
+          <h2>80%</h2>
+          <p>Average Attendance</p>
+        </div>
+        <div class="today-classes">
+          <h3>Today's Classes</h3>
+          <ul>
+            <li>9:00 - 10:00 → Artificial Intelligence</li>
+            <li>10:00 - 11:00 → Machine Learning</li>
+            <li>1:00 - 2:00 → DBMS</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lesson Planning -->
+    <div id="planning" class="tab">
+      <h2>Lesson Planning</h2>
+      <p>Upload your lesson notes and plan your classes here.</p>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tabName, event) {
+      if (tabName == 'attendance') {
+        window.location.href = 'mark_attendance.html';
+        return;
+      }
+      else if (tabName == 'planning'){
+        window.location.href = 'interests.html';
+        return;
+      }
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+
+      document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+    function signOut() {
+      window.location.href = '/logout';
+    }
+  </script>
+</body>
+</html>

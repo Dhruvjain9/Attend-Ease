@@ -211,7 +211,11 @@
   <script>
     function showTab(tabName, event) {
       if (tabName == 'attendance') {
-        window.location.href = '/post-attendance';
+        window.location.href = 'mark_attendance.html';
+        return;
+      }
+      else if (tabName == 'planning'){
+        window.location.href = 'interests.html';
         return;
       }
       document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));

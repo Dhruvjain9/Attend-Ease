@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chandigarh University Login</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-header {
+      position: absolute;
+      top: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    .login-header img {
+      width: 100px;
+    }
+
+    .login-container {
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      width: 350px;
+      text-align: center;
+      border-top: 5px solid #1abc9c;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .login-container h2 {
+      margin-bottom: 25px;
+      font-size: 22px;
+      color: #2c3e50;
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .login-container input:focus {
+      border-color: #1abc9c;
+      box-shadow: 0 0 5px rgba(26, 188, 156, 0.5);
+    }
+
+    .login-container button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      background: #1abc9c;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s;
+    }
+
+    .login-container button:hover {
+      background: #16a085;
+      transform: translateY(-2px);
+    }
+
+    .login-container .links {
+      margin-top: 15px;
+      font-size: 13px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .login-container .links a {
+      color: #2c3e50;
+      text-decoration: none;
+    }
+
+    .login-container .links a:hover {
+      color: #1abc9c;
+      text-decoration: underline;
+    }
+
+    @media screen and (max-width: 400px) {
+      .login-container {
+        width: 90%;
+        padding: 30px 20px;
+      }
+      .login-header img {
+        width: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header Logo -->
+  <div class="login-header">
+    <img src="Logo3.png" alt="CU Logo">
+  </div>
+
+  <!-- Login Card -->
+  <div class="login-container">
+    <h2>CU Login</h2>
+    <!-- Form posts to backend login route -->
+    <form id="loginForm" method="POST" action="/login">
+      <input type="text" id="username" name="username" placeholder="Username / Roll No." required>
+      <input type="password" id="password" name="password" placeholder="Password" required>
+      <button type="submit">Login</button>
+    </form>
+    <div class="links">
+      <a href="#">Forgot Password?</a> | 
+      <a href="#">New User</a>
+    </div>
+  </div>
+
+  <!-- Optional JS frontend validation -->
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      let user = document.getElementById("username").value.trim();
+      let pass = document.getElementById("password").value.trim();
+
+      if(user === "" || pass === ""){
+        e.preventDefault(); // prevent form submission
+        alert("Please fill all fields!");
+      }
+      // else let it submit to backend
+    });
+  </script>
+</body>
+</html>
